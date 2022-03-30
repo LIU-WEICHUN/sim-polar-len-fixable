@@ -1,0 +1,8 @@
+function binvec = dec2binvec(max_val, decvec)
+N = floor(log2(max_val));
+sample = 
+binvec = zeros(length(decvec) ,N)
+for i = decvec
+    for
+end
+
