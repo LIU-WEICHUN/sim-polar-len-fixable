@@ -23,7 +23,7 @@ punct_type1 = 46;
 punct_type2 = 47; 
 
 %%%!!!!!! seting of the test !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-test = true;
+test = false;
 crc = true;
 batch = 1;
 
@@ -32,11 +32,17 @@ snr_db_end_with_R = [-1, 2.5, 5.5]; % simplest, 10^-2 to 10^-3
 snr_db_end_with_R = [-0.5, 3, 6]; % faster, about 10^-4
 % snr_db_end_with_R = [-1, 3.5, 6.5]; % complete, 10^-5 to 10^-6
 
+
+
+
 %%% choose test case
 L = 8;
 N_case = 2;
-for POLAR_TYPE = [shorten]
-for R_case = 2:2
+for POLAR_TYPE = [apcASC, apcDES,...   
+New_type1, New_type2, New_type3, New_type4,...
+shorten, double_shorten ,fourtime_shorten ,QUP_without_bitreverse]
+    
+for R_case = 1:3
 N = N_test(N_case);
 R = R_test(R_case);
 K = round(N*R);
@@ -51,8 +57,13 @@ K = round(N*R);
 % NTEST = 5000000;
 NTEST = 100000; % 10^-2 -3
 NTEST = 500000;
+NTEST = 10^7;
+
+NMIN = 10^4;
+NErrMIN = 50;
+
 if test == true
-    NTEST = 500; % for test
+    NTEST = 50; % for test
 end
 
 %%% define crc way
@@ -161,7 +172,7 @@ for s = 1: length(SNR_db)
              fclose(fp);
 
              %%% early stop condiction
-             if((t > NTEST/5) && (BLK_ERR_CNT(s) > 500))
+             if((t > NMIN) && (BLK_ERR_CNT(s) > NErrMIN))
                  break;
              end
          end
