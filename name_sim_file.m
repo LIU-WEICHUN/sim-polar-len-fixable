@@ -34,6 +34,6 @@ function fileName = name_sim_file(POLAR_TYPE, N, K, L)
             disp('undefine');
             assert(false, "undefine polar type");
     end
-    fileName = [fileName, datestr(datetime('now')), '.m'];
+    fileName = [fileName,'_',datestr(datetime('now')), '.m'];
 end
 
