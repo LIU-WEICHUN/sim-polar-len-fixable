@@ -1,5 +1,5 @@
-function phi = TrifinovFormula(x)
-    faster = true;
+function phi = TrifinovFormula(x, faster)
+%     faster = true;
     if faster ~= true
         if x > 0
             fun = @(u) tanh(u/2).*exp(-((u-x).^2)./(4*x));
@@ -10,7 +10,7 @@ function phi = TrifinovFormula(x)
             phi = 1;
             return;
         else
-            assert(true, "x out of range");
+            assert(false, "x out of range");
             return;
         end
     else

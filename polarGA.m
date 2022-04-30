@@ -31,7 +31,7 @@ function ll = polarGA(llr, POLAR_TYPE)
             Na = size(llr, 2);
             vec_punc = vec_shorten(Na);
 
-            vec_punc(vec_punc == 0) = 1000;
+            vec_punc(vec_punc == 0) = inf;
             vec_punc(vec_punc == 1) = llr;
 
             ll = polarGAIter(vec_punc);
@@ -58,7 +58,7 @@ function ll = polarGA(llr, POLAR_TYPE)
         case 46
             Na = size(llr, 2);
             vec_punc = punc_type1(Na);
-            vec_punc(vec_punc == 0) = 1000;
+            vec_punc(vec_punc == 0) = inf;
             vec_punc(vec_punc == 1) = llr;
             ll = polarGAIter(vec_punc);
             ll(punc_type1(Na) == 0) = -1;
@@ -200,7 +200,7 @@ end
 %
 function z = upperf(x1, x2)
     z = [];
-    for arg = 1-((1-approxTrifinovFormula(x1)).*(1-approxTrifinovFormula(x2)))
+    for arg = 1-((1-newapproxTrifinovFormula(x1)).*(1-newapproxTrifinovFormula(x2)))
         z = [z,bisetionInvTrifinov(arg, 10^(-6), 500)];
     end
     return
@@ -212,27 +212,41 @@ function z = lowerf(x1, x2)
 end
 
 function [x, num_iter] = bisetionInvTrifinov(phi, range, max_iter)
+    if phi == 1
+        x = 0;
+        num_iter = 0;
+        return
+    end
+    if phi == 0
+        x = inf;
+        num_iter = 0;
+        return
+    end
+    %%% init
     x_u_bound = 200;
     x_l_bound = 0;
-    phi_l = approxTrifinovFormula(x_u_bound);
-    phi_u = approxTrifinovFormula(x_l_bound);
+    phi_l = newapproxTrifinovFormula(x_u_bound);
+    phi_u = newapproxTrifinovFormula(x_l_bound); %phi = 1 when x = 0 in new function
     i = 0;
+
+    %%% case x out of right
     if(phi < phi_l)
         x = x_u_bound;
         num_iter = i;
         return
     end
-%     assert(phi <= 1.04, 'phi bigger than 1.04' );
-    if phi >= 1 || phi > phi_u
+
+    if phi > 1 || phi > phi_u
+        assert(false, 'out of the define');
         x = 0;
-        num_iter = i;
+        num_iter = -1;
         return
     end
     
     while(i < max_iter)
         i = i+1;
         x_new_bound = (x_l_bound+ x_u_bound)/2;
-        phi_new_bound = approxTrifinovFormula(x_new_bound);
+        phi_new_bound = newapproxTrifinovFormula(x_new_bound);
         if(phi_new_bound > phi)
             x_l_bound = x_new_bound;
         else
@@ -246,6 +260,21 @@ function [x, num_iter] = bisetionInvTrifinov(phi, range, max_iter)
     end
 end
 
+function phi = newapproxTrifinovFormula(x)
+    %%% https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6584444
+    phi = zeros(size(x));
+    condzero = (0<=x)&(x<=0.25) ;
+    conds = (0.25< x)& (x< 10);
+    condl = x >= 10;
+    a = -0.4527;
+    b = 0.0218;
+    r = 0.86;
+    phi(condzero) = exp(x(condzero)*(-0.1156/0.25));
+    phi(conds) = exp(a*(x(conds).^r)+b);
+    x_1 = x(condl);
+    phi(condl) = (sqrt(pi./x_1).*exp(-x_1/4).*(1-3./x_1) + sqrt(pi./x_1).*exp(-x_1/4).*(1+1./(7*x_1)))/2 ;
+    phi(x == 0) = 1;   
+end
 
 function phi = approxTrifinovFormula(x)
     %%% https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6584444
@@ -262,17 +291,3 @@ function phi = approxTrifinovFormula(x)
     
 end
 
-% function phi = approxTrifinovFormula(x)
-%     %%% https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6584444
-% 
-%     if x < 10
-%         a = -0.4527;
-%         b = 0.0218;
-%         r = 0.86;
-%         phi = exp(a*(x.^r)+b);
-%         return
-%     else
-%         phi = (sqrt(pi./x).*exp(-x/4).*(1-3./x) + sqrt(pi./x).*exp(-x/4).*(1+1./(7*x)))/2 ;
-%     end
-%     
-% end
